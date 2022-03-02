@@ -1,0 +1,89 @@
+%&"../mdl"
+\begin{document}
+    \title{作业一：MLQP}
+    \maketitle
+
+    \section{推导}
+    \begin{problem}
+        Suppose the output of each neuron in a multi-
+layer perceptron is:
+
+\begin{equation}\label{eq:def}
+    x_{kj} = f\left(\sum_{i=1}^{N_{k-1}}(u_{kji}x_{k-1,i}^2+v_{kji}x_{k-1,i})+b_{kj}\right)
+\end{equation}
+
+where both $u_{kji}$ and $v_{kji}$ are the weights connecting the $i^\text{th}$ unit in the layer $k-1$ to the $j^\text{th}$ unit in the layer $k$, $b_{kj}$ is 
+the bias of the $j^\text{th}$ unit in the layer $k$, $N_k$ is the number of 
+units  if $1\leq k\leq M$ and $f(\cdot)$ is the sigmoidal activation 
+function. 
+
+Please derive a back-propagation algorithm for multilayer 
+quadratic perceptron (MLQP) in on-line or sequential 
+mode.
+    \end{problem}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[height=0.25\textheight]{mlqp}
+        \caption{MLQP}\label{fig:mlqp}
+    \end{figure}
+
+    \subsection{输出神经元}
+        对于输出神经元信号 $x_{Mj}$ 来说，令 $d_{Mj}$ 为目标值，则对应的误差为
+        \begin{equation*}
+            e_{Mj} = d_{Mj} - x_{Mj}
+        \end{equation*}
+        使用均方误差计算损失函数
+        \begin{equation}\label{eq:loss}
+            \mathcal{E} = \sum_{j=1}^{N_{M}}\frac{1}{2}e_{Mj}^2
+        \end{equation}
+        则对于 $\mathit{net}_{Mj}$ 的梯度为
+        \begin{align*}
+            \frac{\partial\mathcal{E}}{\partial net_{Mj}} &= \frac{\partial\mathcal{E}}{\partial e_{Mj}}\frac{\partial e_{Mj}}{\partial x_{Mj}}\frac{\partial x_{Mj}}{\partial \mathit{net}_{Mj}} \\
+            &= -e_{Mj}f^\prime(\mathit{net}_{Mj})
+        \end{align*}
+        定义对应的局部梯度（local gradient）为
+        \begin{equation}
+            \delta_{Mj} = -\frac{\partial\mathcal{E}}{\partial net_{Mj}} = e_{Mj}f^\prime(\mathit{net}_{Mj})
+        \end{equation}
+    \subsection{隐藏层}
+    对于隐藏神经元上的 $net_{k-1,j}$ 而言，假设后一层反向传播来的局部梯度已知：
+    \begin{equation*}
+        \delta_{kj} = -\frac{\partial\mathcal{E}}{\partial\mathit{net}_{kj}}
+    \end{equation*}
+    则该层的局部梯度为
+    \begin{align}
+        \delta_{k-1,i} = -\frac{\partial\mathcal{E}}{\partial\mathit{net}_{k-1,i}} &= -\frac{\partial\mathcal{E}}{\partial x_{k-1,i}}\frac{\partial x_{k-1,i}}{\partial\mathit{net}_{k-1,i}} \nonumber\\
+        &= -f^\prime(\mathit{net}_{k-1,i})\sum_{j=1}^{N_j}\frac{\partial\mathcal{E}}{\partial\mathit{net}_{kj}}\frac{\partial\mathit{net}_{kj}}{\partial x_{k-1,i}} \nonumber\\
+        &= -f^\prime(\mathit{net}_{k-1,i})\sum_{j=1}^{N_j}\delta_{kj}(2u_{kji}x_{k-1,i}+v_{kji})
+    \end{align}
+    \subsection{更新权值}
+    而根据公式 \eqref{eq:def}，
+    \begin{align*}
+        \frac{\partial\mathit{net}_{kj}}{\partial u_{kji}} &= x_{k-1,i}^2 \\
+        \frac{\partial\mathit{net}_{kj}}{\partial v_{kji}} &= x_{k-1,i}
+    \end{align*}
+    设定学习率分别为 $\eta_1,\eta_2$，则对应权重的修正值
+    \begin{align*}
+        \Delta u_{kji} = -\eta_1\frac{\partial\mathcal{E}}{\partial u_{kji}} 
+        &=-\eta_1\frac{\partial\mathcal{E}}{\partial\mathit{net}_{kj}}\frac{\partial\mathit{net}_{kj}}{\partial u_{kji}}=\eta_1\delta_{kj}x_{k-1,i}^2 \\
+        \Delta v_{kji} = -\eta_2\frac{\partial\mathcal{E}}{\partial v_{kji}} &=-\eta_1\frac{\partial\mathcal{E}}{\partial\mathit{net}_{kj}}\frac{\partial\mathit{net}_{kj}}{\partial v_{kji}}= \eta_2\delta_{kj}x_{k-1,i}
+    \end{align*}
+    为了提高学习速率，引入动量
+    \begin{align}
+        \Delta u_{kji}(t+1) &= \alpha_1\Delta u_{kji}(t) + \eta_1\delta_{kj}x_{k-1,i}^2 \\
+        \Delta v_{kji}(t+1) &= \alpha_2\Delta v_{kji}(t) + \eta_2\delta_{kj}x_{k-1,i} 
+    \end{align}
+    这里 $\alpha_1$ 和 $\alpha_2$ 分别为其动量常数。这个结果与 \cite{MLQP} 一致。
+
+    \section{实现}
+    \begin{problem}
+        Please implement an on-line BP algorithm for MLQP
+(you can use any programming language), train an MLQP
+with one hidden layer to classify two spirals problem,
+and compare the training time and decision boundaries at
+three different learning rates.
+    \end{problem}
+
+    \bibliography{ref}
+\end{document}

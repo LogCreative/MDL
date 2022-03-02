@@ -1,0 +1,107 @@
+
+% Common Header for MDL class.
+% Compile through etex to cache the header.
+% Recipe: recompile header in VS Code
+
+\documentclass[UTF8,12pt,a4paper]{ctexart}
+\usepackage{amsmath,amscd,amsbsy,amssymb,latexsym,url,bm,amsthm}
+\usepackage{epsfig,graphicx,subfigure}
+\usepackage{enumitem,balance}
+\usepackage{wrapfig}
+\usepackage{array,float,booktabs}
+\usepackage{mathrsfs,euscript}
+\usepackage[usenames]{xcolor}
+\usepackage{hyperref}
+\usepackage[vlined,ruled,linesnumbered]{algorithm2e}
+\hypersetup{colorlinks=true,linkcolor=black, citecolor=blue}
+\usepackage{geometry}
+\geometry{top=3cm,bottom=2cm,left=2cm,right=2cm}
+\linespread{1.0}
+\graphicspath{{img/}}
+
+\newtheorem{theorem}{定理}
+\newtheorem{lemma}[theorem]{引理}
+\newtheorem{proposition}[theorem]{命题}
+\newtheorem{corollary}[theorem]{推论}
+\theoremstyle{definition}\newtheorem{problem}{问题}
+\theoremstyle{plain}\newtheorem*{solution}{Solution}
+\newtheorem{definition}{定义}
+
+\makeatletter
+\def\@maketitle{
+    \noindent\framebox[\linewidth]{\shortstack[c]{
+    \Large{\textbf{\@title}}\vspace{1mm}\\
+    超并行机器学习与海量数据挖掘 \quad EI328\\
+    2022 年春季工程实践与科技创新课程 \uppercase\expandafter{\romannumeral4}-J }}
+    \begin{center}
+        \footnotesize{
+            \color{blue} 
+            姓名：\@author \quad 
+            学号：518070910095 \quad 
+            日期：\@date
+        }
+    \end{center}
+    \smallskip
+}
+\renewenvironment{proof}[1][证明]{\par\pushQED{\qed}\normalfont\topsep6\p@\@plus6\p@\relax\trivlist\item[\hskip\labelsep\bfseries#1\@addpunct{.}]\ignorespaces}{\popQED\endtrivlist\@endpefalse}
+\renewenvironment{solution}[1][解] {\par\pushQED{\qed}\normalfont\topsep6\p@\@plus6\p@\relax\trivlist\item[\hskip\labelsep\bfseries#1\@addpunct{.}]\ignorespaces}{\popQED\endtrivlist\@endpefalse}
+\makeatother
+
+\usepackage{enumitem}
+\setlist{nosep}
+\setlist[enumerate]{label=(\arabic*)}
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usetikzlibrary{external}
+
+\usepackage{gbt7714}
+\citestyle{numbers}
+
+\usepackage{listings}
+\definecolor{grey}{rgb}{0.8,0.8,0.8}
+\definecolor{darkgreen}{rgb}{0,0.3,0}
+\definecolor{darkblue}{rgb}{0,0,0.3}
+\lstset{%
+    columns=flexible,
+    inputencoding=utf8,
+    basicstyle=\small\ttfamily,
+    numberstyle=\scriptsize\ttfamily\color{gray},
+    showstringspaces=false,
+    showspaces=false,%
+    tabsize=4,
+    numbers=left,
+    framexleftmargin=8mm,
+    xleftmargin=8mm,
+    keepspaces=true,
+    frame=lines,
+    framerule=1pt,
+    rulecolor=\color{green!50!black},
+    backgroundcolor=\color{green!5},
+    commentstyle=\color{gray}\itshape,
+    stringstyle=\color{red!75},
+    keywordstyle=\color{blue!80!black},
+    lineskip=-1pt,
+    breaklines,
+    extendedchars=false
+}
+\providecommand{\code}[2][]{\lstinputlisting[caption=\href{./#2}{\ttfamily #2},#1]{#2}}
+\providecommand{\codeseg}[4][]{\lstinputlisting[caption=\href{./#2}{\ttfamily #2},firstline=#3,firstnumber=#3,lastline=#4,#1]{#2}}
+\lstdefinestyle{commandshell}{
+    language=bash,numbers=none,frame=single,frameround=fttt,basicstyle=\normalsize\ttfamily
+}  % usage: \begin{lstlisting}[style=commandshell]
+
+\usepackage{multicol}
+\usepackage{subfigure}
+
+\def\filelink#1{
+    \href{./#1}{\ttfamily #1}
+}
+
+\author{李子龙}
+
+\begin{document}
+    \title{项目}
+    \maketitle
+\end{document}
