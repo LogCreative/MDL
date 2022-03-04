@@ -6,7 +6,7 @@ from tqdm import tqdm
 class Net:
     """MLQP Network"""
 
-    def __init__(self, lr=0.1, alpha=0.8, hidden_num=10, random_seed=None):
+    def __init__(self, lr=0.1, hidden_num=10, random_seed=None):
         """Init MLQP network.
 
         Args:
@@ -85,17 +85,17 @@ def step(model, data, with_grad=True):
     Returns:
         loss: the mse loss of this batch of data
     """
-    pred = []
-    target = []
-    for entry in data:
+    pred = np.zeros((len(data)))
+    target = np.zeros((len(data)))
+    for i,entry in enumerate(data):
         entry_input = entry[0:2]
         entry_target = entry[2]
         entry_pred = model.forward(entry_input)
         if with_grad:
             model.backward(entry_pred, entry_target)
-        pred.append(entry_pred)
-        target.append(entry_target)
-    return mse(np.array(pred), np.array(target))
+        pred[i] = entry_pred
+        target[i] = entry_target
+    return mse(pred, target)
 
 
 def train_step(model, train_data):
@@ -162,7 +162,7 @@ def train(model, train_data, epochs):
                 # if val_error - prev_val_error < -delta:
                 #     prev_val_error = val_error
                 # else:
-                #     pbar.set_description("Early Stop %4d@ %.4f" % (epoch, val_error))
+                #     pbar.set_description("Early Stop %4d | T %.4f | V %.4f" % (epoch, train_error, val_error))
                 #     return
                 pbar.set_description(
                     "Epoch %4d | T %.4f | V %.4f" % (epoch, train_error, val_error)

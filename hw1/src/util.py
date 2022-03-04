@@ -1,13 +1,19 @@
 import numpy as np
+import os
 
 def read_data(filename):
-    """
-    Reads data from the file and return an array of data
-    formatting:
-    [x y label]
+    """Reads data from the file and return an array of data
+    formatting: [x y label]
+
+    Args:
+        filename (str): the path of file
+
+    Returns:
+        data: the array of the data read from file
     """
     data = []
-    with open(filename, "r") as f:
+    # helpful for debugging at any directories.
+    with open(os.path.dirname(os.path.abspath(__file__)) + '/' + filename, "r") as f:
         for line in f.readlines():
             x, y, label = line.split()
             x = float(x)
