@@ -150,23 +150,44 @@ three different learning rates.
     \end{equation}
 
     改写公式 \eqref{eq:u} 和公式 \eqref{eq:v}，权重修正矩阵
-    \begin{align}
+    \begin{align*}
         \mathbf{\Delta U}_{k} &= (\Delta u_{kji})_{N_{k}\times N_{k-1}} = \eta_1 \boldsymbol{\delta}_k\mathbf{Y}_{k-1}^T \\
         \mathbf{\Delta V}_{k} &= (\Delta v_{kji})_{N_{k}\times N_{k-1}} = \eta_2 \boldsymbol{\delta}_k\mathbf{X}_{k-1}^T 
-    \end{align}
+    \end{align*}
 
     改写公式 \eqref{eq:bias}，偏移修正矩阵
-    \begin{equation}
+    \begin{equation*}
         \mathbf{\Delta B}_{k} = (\Delta b_{kj})_{N_{k}\times 1} = \eta_3 \boldsymbol{\delta}_{k}
-    \end{equation}
+    \end{equation*}
+
+    \subsection{动量项}
+
+    为了加速收敛过程，对修正项添加动量项
+    \begin{align}
+        \mathbf{\Delta U}_{k}(t+1) &= \alpha_1\mathbf{\Delta U}_{k}(t) + \eta_1 \boldsymbol{\delta}_k\mathbf{Y}_{k-1}^T \\
+        \mathbf{\Delta V}_{k}(t+1) &= \alpha_2\mathbf{\Delta V}_{k}(t) + \eta_2 \boldsymbol{\delta}_k\mathbf{X}_{k-1}^T \\
+        \mathbf{\Delta B}_{k}(t+1) &= \alpha_3\mathbf{\Delta B}_{k}(t) + \eta_3 \boldsymbol{\delta}_{k}
+    \end{align}
+    其中 $\alpha_1,\alpha_2,\alpha_3$ 为动量常数。
 
     \subsection{训练过程}
 
     根据 \cite{torchlinear}，将参数初始化为 $\mathcal{U}\left(-\sqrt{\frac{1}{2}},\sqrt{\frac{1}{2}}\right)$ 上的随机值，其中 $\mathcal{U}$ 为一致分布。
 
-    简便起见，将三个参数的学习率设置为一个相等的值 $\eta_1=\eta_2=\eta_3=\eta$。
+    简便起见，将三个参数的学习率设置为一个相等的值 $\eta_1=\eta_2=\eta_3=\eta$，将动量常数也设为相同的值 $\alpha_1=\alpha_2=\alpha_3=\alpha$。
 
     数据范围是 $x\in[-6,6],y\in[-6,6]$。
+
+    \section{分割子问题}
+
+    \begin{problem}
+        Divide the problem.
+        \begin{enumerate}
+            \item Divide the two spirals problem into four or nine sub-problems randomly and with prior knowledge, respectively.
+            \item Train MLQP on these sub-problems and construct two min-max modular networks.
+            \item Compare training time and decision boundaries of the above two min-max modular networks.
+        \end{enumerate}
+    \end{problem}
 
     \bibliography{ref}
 \end{document}

@@ -6,36 +6,49 @@ from tqdm import tqdm
 class Net:
     """MLQP Network"""
 
-    def __init__(self, lr=0.1, hidden_num=10, random_seed=None):
+    def __init__(self, lr=0.1, alpha=0.8, random_seed=None, hidden_num=10):
         """Init MLQP network.
 
         Args:
-            lr (float, optional): Learning rate. Defaults to 0.1.
-            hidden_num (int, optional): the number of hiden layer neurons. Defaults to 10.
+            lr (float, optional): Learning Rate. Defaults to 0.1.
+            alpha (float, optional): Momentum Constant. Defaults to 0.8.
+            random_seed (int, optional): Random seed for numpy. Defaults to None.
+            hidden_num (int, optional): the number of neurons in the hidden layer. Defaults to 10.
         """
         self.lr = lr
+        self.alpha = alpha
         self.hidden_num = hidden_num
-        self.epochs = 0
-        self.logs = []
-        self.param_init(random_seed)
-
-    def param_init(self, random_seed):
-        """Init parameters."""
-
-        sqrtk = np.sqrt(1 / 2)
 
         if random_seed is not None:
             np.random.seed(random_seed)
+
+        self.epochs = 0
+        self.logs = []
+        self.param_init()
+
+    def param_init(self):
+        """Init parameters.
+        """
+
+        sqrtk = np.sqrt(1 / 2)
 
         # x, y -> hidden
         self.u2 = np.random.uniform(-sqrtk, sqrtk, (self.hidden_num, 2))
         self.v2 = np.random.uniform(-sqrtk, sqrtk, (self.hidden_num, 2))
         self.b2 = np.random.uniform(-sqrtk, sqrtk, (self.hidden_num, 1))
 
+        self.delta_u2 = np.zeros(self.u2.shape)
+        self.delta_v2 = np.zeros(self.v2.shape)
+        self.delta_b2 = np.zeros(self.b2.shape)
+
         # hidden -> output
         self.u3 = np.random.uniform(-sqrtk, sqrtk, (1, self.hidden_num))
         self.v3 = np.random.uniform(-sqrtk, sqrtk, (1, self.hidden_num))
         self.b3 = np.random.uniform(-sqrtk, sqrtk, (1, 1))
+
+        self.delta_u3 = np.zeros(self.u3.shape)
+        self.delta_v3 = np.zeros(self.v3.shape)
+        self.delta_b3 = np.zeros(self.b3.shape)
 
     def forward(self, x1):
         """Foward pass, return the prediction based on the given data.
@@ -61,17 +74,31 @@ class Net:
             target (float): the target label
         """
         self.delta3 = (target - pred) * sigmoid_prime(self.n3)
-        self.u3 = self.u3 + self.lr * np.matmul(self.delta3, self.y2.T)
-        self.v3 = self.v3 + self.lr * np.matmul(self.delta3, self.x2.T)
-        self.b3 = self.b3 + self.lr * self.delta3
+        self.delta_u3 = self.alpha * self.delta_u3 + self.lr * np.matmul(
+            self.delta3, self.y2.T
+        )
+        self.delta_v3 = self.alpha * self.delta_v3 + self.lr * np.matmul(
+            self.delta3, self.x2.T
+        )
+        self.delta_b3 = self.alpha * self.delta_b3 + self.lr * self.delta3
+        self.u3 = self.u3 + self.delta_u3
+        self.v3 = self.v3 + self.delta_v3
+        self.b3 = self.b3 + self.delta_b3
 
         self.delta2 = (
             np.matmul(self.u3.T, self.delta3) * 2 * self.x2
             + np.matmul(self.v3.T, self.delta3)
         ) * sigmoid_prime(self.n2)
-        self.u2 = self.u2 + self.lr * np.matmul(self.delta2, self.y1.T)
-        self.v2 = self.v2 + self.lr * np.matmul(self.delta2, self.x1.T)
-        self.b2 = self.b2 + self.lr * self.delta2
+        self.delta_u2 = self.alpha * self.delta_u2 + self.lr * np.matmul(
+            self.delta2, self.y1.T
+        )
+        self.delta_v2 = self.alpha * self.delta_v2 + self.lr * np.matmul(
+            self.delta2, self.x1.T
+        )
+        self.delta_b2 = self.alpha * self.delta_b2 + self.lr * self.delta2
+        self.u2 = self.u2 + self.delta_u2
+        self.v2 = self.v2 + self.delta_v2
+        self.b2 = self.b2 + self.delta_b2
 
 
 def step(model, data, with_grad=True):
@@ -87,7 +114,7 @@ def step(model, data, with_grad=True):
     """
     pred = np.zeros((len(data)))
     target = np.zeros((len(data)))
-    for i,entry in enumerate(data):
+    for i, entry in enumerate(data):
         entry_input = entry[0:2]
         entry_target = entry[2]
         entry_pred = model.forward(entry_input)
@@ -213,9 +240,16 @@ if __name__ == "__main__":
         metavar="LR",
         help="learning rate (default: 0.1)",
     )
+    parser.add_argument(
+        "--alpha",
+        type=float,
+        default=0.8,
+        metavar="A",
+        help="Momentum constant (default: 0.8)",
+    )
     args = parser.parse_args()
 
-    net = Net(args.lr)
+    net = Net(args.lr, args.alpha)
 
     train_data = read_data(args.train_file)
     test_data = read_data(args.test_file)
