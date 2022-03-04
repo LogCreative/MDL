@@ -178,6 +178,8 @@ three different learning rates.
 
     数据范围是 $x\in[-6,6],y\in[-6,6]$。
 
+    按照 \cite{tfearly} 中早停机制的实现，将会在最佳验证误差后没有进展的 \texttt{MAX\_EPOCHS} 后停止训练，并恢复最佳模型。
+
     \section{分割子问题}
 
     \begin{problem}

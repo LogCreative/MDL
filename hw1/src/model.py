@@ -1,5 +1,6 @@
 from util import *
 import argparse
+import copy
 from tqdm import tqdm
 
 
@@ -27,8 +28,7 @@ class Net:
         self.param_init()
 
     def param_init(self):
-        """Init parameters.
-        """
+        """Init parameters."""
 
         sqrtk = np.sqrt(1 / 2)
 
@@ -148,13 +148,14 @@ def test_step(model, test_data):
     return step(model, test_data, False)
 
 
-def train(model, train_data, epochs):
+def train(model, train_data, epochs, test_data=None):
     """Train the model by epochs.
 
     Args:
         model (Net): the instance of Net
         train_data (array): the training set
         epochs (int): the number of epochs
+        test_data (array, optional): if assigned, the test error will be tracked but will not go into the training process.
     """
 
     # divide the data into 3-folds.
@@ -166,8 +167,13 @@ def train(model, train_data, epochs):
     fold_data.append(train_data[(k - 1) * fold_size :])
 
     with tqdm(total=epochs, leave=True, unit="epoch") as pbar:
-        prev_val_error = np.inf
-        delta = 1e-6
+        # Parameters for early stopping.
+        DELTA = 1e-4
+        MAX_EPOCHS = 200
+        best_model = None
+        best_val_error = np.inf
+        best_epoch = 0
+
         epoch_range = range(model.epochs + 1, model.epochs + 1 + epochs)
         for epoch in epoch_range:
             train_error = 0.0
@@ -185,16 +191,33 @@ def train(model, train_data, epochs):
             pbar.update(1)
             if epoch % 10 == 0:
                 model.epochs = epoch
-                # # Early Stop
-                # if val_error - prev_val_error < -delta:
-                #     prev_val_error = val_error
-                # else:
-                #     pbar.set_description("Early Stop %4d | T %.4f | V %.4f" % (epoch, train_error, val_error))
-                #     return
+
+                # Early Stop
+                if val_error - best_val_error < -DELTA:
+                    best_model = copy.deepcopy(model)
+                    best_val_error = val_error
+                    best_epoch = epoch
+                if epoch - best_epoch >= MAX_EPOCHS:
+                    model = best_model
+                    pbar.set_description(
+                        "Early Stop %4d | T %.4f | V %.4f"
+                        % (model.logs[-1][0], model.logs[-1][1], model.logs[-1][2])
+                    )
+                    return
+
                 pbar.set_description(
                     "Epoch %4d | T %.4f | V %.4f" % (epoch, train_error, val_error)
                 )
-                model.logs.append([epoch, train_error, val_error])
+                model.logs.append(
+                    [epoch, train_error, val_error]
+                    + (
+                        []
+                        if test_data is None
+                        else [test_step(copy.deepcopy(model), test_data)]
+                    )
+                )
+                # though the deepcopy is not necessary, here the test_data will only use the forward process, the storage of like delta_u3 will not be infected and new data will flush out the storage like u3
+                # but for safty reasons, deepcopy is here inserted.
 
 
 def test(model, test_data):
@@ -236,7 +259,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--lr",
         type=float,
-        default=0.1,
+        default=0.01,
         metavar="LR",
         help="learning rate (default: 0.1)",
     )
@@ -254,6 +277,6 @@ if __name__ == "__main__":
     train_data = read_data(args.train_file)
     test_data = read_data(args.test_file)
 
-    train(net, train_data, args.epochs)
+    train(net, train_data, args.epochs, test_data)
     test_error = test(net, test_data)
     print("Test Error: %.4f" % test_error)
