@@ -172,13 +172,13 @@ three different learning rates.
 
     \subsection{训练过程}
 
-    根据 \cite{torchlinear}，将参数初始化为 $\mathcal{U}\left(-\sqrt{\frac{1}{2}},\sqrt{\frac{1}{2}}\right)$ 上的随机值，其中 $\mathcal{U}$ 为一致分布。
+    类似于 \cite{torchlinear}，由于参数数量相对于线性层加倍，将参数初始化为 $\mathcal{U}\left(-\sqrt{\frac{1}{2\times 2}},\sqrt{\frac{1}{2\times 2}}\right)=\mathcal{U}(-0.5,0.5)$ 上的随机值，其中 $\mathcal{U}$ 为一致分布。
 
     简便起见，将三个参数的学习率设置为一个相等的值 $\eta_1=\eta_2=\eta_3=\eta$，将动量常数也设为相同的值 $\alpha_1=\alpha_2=\alpha_3=\alpha$。
 
     数据范围是 $x\in[-6,6],y\in[-6,6]$。
 
-    按照 \cite{tfearly} 中早停机制的实现，将会在最佳验证误差后没有进展的 \texttt{MAX\_EPOCHS} 后停止训练，并恢复最佳模型。
+    按照 \cite{tfearly} 中早停机制的实现，将会在最佳验证误差后没有进展的 \texttt{MAX\_EPOCHS}$=200$ 后停止训练，并恢复最佳模型。
 
     \section{分割子问题}
 

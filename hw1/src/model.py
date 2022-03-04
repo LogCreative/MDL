@@ -30,7 +30,7 @@ class Net:
     def param_init(self):
         """Init parameters."""
 
-        sqrtk = np.sqrt(1 / 2)
+        sqrtk = np.sqrt(1 / 4)
 
         # x, y -> hidden
         self.u2 = np.random.uniform(-sqrtk, sqrtk, (self.hidden_num, 2))
@@ -156,6 +156,9 @@ def train(model, train_data, epochs, test_data=None):
         train_data (array): the training set
         epochs (int): the number of epochs
         test_data (array, optional): if assigned, the test error will be tracked but will not go into the training process.
+
+    Returns:
+        model (Net): trained model
     """
 
     # divide the data into 3-folds.
@@ -189,25 +192,8 @@ def train(model, train_data, epochs, test_data=None):
             train_error /= k
             val_error /= k
             pbar.update(1)
-            if epoch % 10 == 0:
+            if epoch == 1 or epoch % 10 == 0:
                 model.epochs = epoch
-
-                # Early Stop
-                if val_error - best_val_error < -DELTA:
-                    best_model = copy.deepcopy(model)
-                    best_val_error = val_error
-                    best_epoch = epoch
-                if epoch - best_epoch >= MAX_EPOCHS:
-                    model = best_model
-                    pbar.set_description(
-                        "Early Stop %4d | T %.4f | V %.4f"
-                        % (model.logs[-1][0], model.logs[-1][1], model.logs[-1][2])
-                    )
-                    return
-
-                pbar.set_description(
-                    "Epoch %4d | T %.4f | V %.4f" % (epoch, train_error, val_error)
-                )
                 model.logs.append(
                     [epoch, train_error, val_error]
                     + (
@@ -217,7 +203,32 @@ def train(model, train_data, epochs, test_data=None):
                     )
                 )
                 # though the deepcopy is not necessary, here the test_data will only use the forward process, the storage of like delta_u3 will not be infected and new data will flush out the storage like u3
-                # but for safty reasons, deepcopy is here inserted.
+                # but for safety reasons, deepcopy is here inserted.
+
+                # Early Stop
+                if val_error - best_val_error < -DELTA:
+                    best_model = copy.deepcopy(model)
+                    best_val_error = val_error
+                    best_epoch = epoch
+                if epoch - best_epoch >= MAX_EPOCHS:
+                    pbar.set_description(
+                        "Early Stop %4d | T %.4f | V %.4f"
+                        % (
+                            best_model.logs[-1][0],
+                            best_model.logs[-1][1],
+                            best_model.logs[-1][2],
+                        )
+                    )
+                    return best_model
+                    # have to return the model in this function,
+                    # since deepcopy fallback could not trigger the
+                    # python's modifying the parameter only through
+                    # copying and assigning.
+
+                pbar.set_description(
+                    "Epoch %4d | T %.4f | V %.4f" % (epoch, train_error, val_error)
+                )
+        return best_model
 
 
 def test(model, test_data):
@@ -277,6 +288,6 @@ if __name__ == "__main__":
     train_data = read_data(args.train_file)
     test_data = read_data(args.test_file)
 
-    train(net, train_data, args.epochs, test_data)
+    net = train(net, train_data, args.epochs, test_data)
     test_error = test(net, test_data)
     print("Test Error: %.4f" % test_error)
