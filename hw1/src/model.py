@@ -148,7 +148,26 @@ def test_step(model, test_data):
     return step(model, test_data, False)
 
 
-def folds(train_data, k):
+def folds(data, k):
+    """divide data sequencially into k portions
+
+    Args:
+        data (array): the data to be divided
+        k (int): the number of portions
+
+    Returns:
+        fold_data (array): the divided data
+    """
+
+    fold_size = len(data) // k
+    fold_data = []
+    for i in range(k - 1):
+        fold_data.append(data[i * fold_size : (i + 1) * fold_size])
+    fold_data.append(data[(k - 1) * fold_size :])
+    return fold_data
+
+
+def split(train_data, k):
     """split train_data into k folds.
 
     Args:
@@ -159,12 +178,8 @@ def folds(train_data, k):
         split_data (array): the splited data formatted [train_data, val_data] array.
     """
 
-    fold_size = len(train_data) // k
-    fold_data = []
-    for i in range(k - 1):
-        fold_data.append(train_data[i * fold_size : (i + 1) * fold_size])
-    fold_data.append(train_data[(k - 1) * fold_size :])
-
+    fold_data = folds(train_data, k)
+    
     split_data = []
     for val in range(k):
         split_train_data = []
@@ -186,7 +201,7 @@ def cross_validation(model, split_data):
     Returns:
         train_error, val_error: the mean of errors among experiments.
     """
-    
+
     k = len(split_data)
     sum_train_error = 0.0
     sum_val_error = 0.0
@@ -210,7 +225,7 @@ def train(model, train_data, epochs, test_data=None):
     """
 
     # divide the data into 3-folds.
-    split_data = folds(train_data, 3)
+    split_data = split(train_data, 3)
 
     with tqdm(total=epochs, leave=True, unit="epoch") as pbar:
         # Parameters for early stopping.
