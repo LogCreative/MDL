@@ -5,6 +5,9 @@
     \title{作业一：MLQP}
     \maketitle
 
+    \tableofcontents
+    \clearpage
+
     \section{推导}
     \begin{problem}
         Suppose the output of each neuron in a multi-
@@ -221,14 +224,34 @@ three different learning rates.
     \subsection{分解子问题}
 
     根据 \cite{minmax}，对于子问题有两个原则。
-    \begin{lemma}[最小化原则]
+    \begin{lemma}[最小化原则]\label{lemma:min}
         训练集具有相等正类集合的模块应当进行最小化合并。
     \end{lemma}
-    \begin{lemma}[最大化原则]
+    \begin{lemma}[最大化原则]\label{lemma:max}
         训练集具有相等负类集合的模块应当进行最大化合并。
     \end{lemma}
 
-    由于实验电脑有 4 个逻辑核以及为了简便起见，这里将问题分解为 4 个子问题。
+    % 由于实验电脑有 4 个逻辑核以及为了简便起见，这里将问题分解为 4 个子问题。
+    分解方法是将训练集按照正类集合 $P$ 和负类集合 $N$ 分割，然后将正类集合随机平分为 $k$ 份$P_1,P_2,\cdots,P_k$，负类集合也同样分为 $N_1,N_2,\cdots,N_k$，之后从正类小集和负类小集里分别取一个组合成新的训练集
+    \begin{equation*}
+        C_{ij} = (P_i, N_j)\quad \forall i,j\in\mathbb{N}\cap[1,k]
+    \end{equation*}
+
+    \subsection{构造最小最大模块网络}
+
+    % 如图 \ref{fig:minmax} 所示，可以通过更改合并节点的顺序来构造两个网络：先最小化合并，再最大化合并；先最大化合并，再最小化合并。按照上述引理 \ref{lemma:min} 和 \ref{lemma:max} 的原则，安排节点的合并顺序。
+
+    如图 \ref{fig:minmax} 所示，MIN 节点负责将同正类集的结果合并，MAX 节点负责将同负类集的节点合并。需要合并 $k^2$ 个训练单元的结果。
+
+    \begin{figure}[H]
+        \centering
+        \input{fig/minmax}
+        \subfigure[4 个子问题]{\minmax{2}}
+        \subfigure[9 个子问题]{\minmax{3}}
+        \caption{网络结构}\label{fig:minmax}
+    \end{figure}
+
+    
 
     \bibliography{ref}
 \end{document}

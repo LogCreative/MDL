@@ -7,11 +7,11 @@ from tqdm import tqdm
 class Net:
     """MLQP Network"""
 
-    def __init__(self, lr=0.1, alpha=0.8, random_seed=None, hidden_num=10):
+    def __init__(self, lr=0.05, alpha=0.8, random_seed=None, hidden_num=10):
         """Init MLQP network.
 
         Args:
-            lr (float, optional): Learning Rate. Defaults to 0.1.
+            lr (float, optional): Learning Rate. Defaults to 0.05.
             alpha (float, optional): Momentum Constant. Defaults to 0.8.
             random_seed (int, optional): Random seed for numpy. Defaults to None.
             hidden_num (int, optional): the number of neurons in the hidden layer. Defaults to 10.
@@ -50,13 +50,13 @@ class Net:
         self.delta_v3 = np.zeros(self.v3.shape)
         self.delta_b3 = np.zeros(self.b3.shape)
 
-    def forward(self, x1):
+    def forward(self, src):
         """Foward pass, return the prediction based on the given data.
 
         Args:
-            x1 (list): the input list of data `[x,y]`
+            src (list): the input list of data `[x,y]`
         """
-        self.x1 = np.expand_dims(np.array(x1), axis=1)
+        self.x1 = np.expand_dims(np.array(src), axis=1)
         self.y1 = self.x1 * self.x1
         self.n2 = np.matmul(self.u2, self.y1) + np.matmul(self.v2, self.x1) + self.b2
         self.x2 = sigmoid(self.n2)
@@ -179,7 +179,7 @@ def split(train_data, k):
     """
 
     fold_data = folds(train_data, k)
-    
+
     split_data = []
     for val in range(k):
         split_train_data = []

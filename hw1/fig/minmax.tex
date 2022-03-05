@@ -1,0 +1,24 @@
+\providecommand{\minmax}[1]{
+	\begin{tikzpicture}[every node/.style={scale=0.6},scale=0.6]
+	\tikzstyle{compute}=[draw,circle];
+	\tikzstyle{merger}=[draw,rectangle,minimum width=1.5cm,minimum height=1cm];
+	\def\k{#1}
+
+	\node [merger] (Max) at (5,-{(\k+1)*(\k+1)}) {MAX};
+	\foreach \x in {1,...,\k}{
+		\node [merger] (M\x) at (2,{-(2*\x*\k+\k+1)}) {MIN};
+		\foreach \y in {1,...,\k}{
+			\node [compute] (C\x\y) at (-1, -{2*(\x*\k+\y)}) {$(P_\x,N_\y)$};
+			\node [left of=C\x\y,xshift=-1cm] (Cn\x\y) {$C_{\x,\y}$};
+			\draw (Cn\x\y) edge (C\x\y);
+			\draw (C\x\y) -| (M\x);
+		}
+		\node [merger,fill=white] at (2,{-(2*\x*\k+\k+1)}) {MIN}; % dummy
+		\draw (M\x) -| (Max);
+	}
+	\node [merger,fill=white] at (5,-{(\k+1)*(\k+1)}) {MAX}; %dummy
+
+	\node [right of=Max,xshift=1cm] (O) {$O$};
+	\draw (Max) -- (O);
+	\end{tikzpicture}
+}
