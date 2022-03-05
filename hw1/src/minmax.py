@@ -56,31 +56,31 @@ def divide(train_data, k=2):
             divided_data[i].append(positive_folds[i] + negative_folds[j])
     return divided_data
 
-def trainer(train_sub_data, epochs):
-    net = Net()
-    net = train(net, train_sub_data, 100)
+def trainer(train_sub_data, epochs, lr=0.05, random_seed=None):
+    net = Net(lr, random_seed=random_seed)
+    net = train(net, train_sub_data, epochs)
     return net
 
-def minmax(train_data, k, epochs):
+def minmax(train_data, k, epochs, lr=0.05, random_seed=None):
     divided_data = divide(train_data, k)
     
     # train the units
-    nets = []
+    subnets = []
     for i in range(k):
-        nets.append([])
+        subnets.append([])
         for j in range(k):
-            nets[i].append(trainer(divided_data[i][j], epochs))
+            subnets[i].append(trainer(divided_data[i][j], epochs, lr, random_seed))
 
     # merge to min
     mins = []
     for i in range(k):
-        mins.append(Min(nets[i]))
+        mins.append(Min(subnets[i]))
 
     # merge to max
-    return Max(mins)
+    return Max(mins), subnets, mins
 
 if __name__ == "__main__":
     train_data = read_data("../two_spiral_train_data.txt")
-    minmax_net = minmax(train_data, 3, 100)
+    minmax_net, subnets, mins = minmax(train_data, 3, 100, 0.05)
     test_data = read_data("../two_spiral_test_data.txt")
     print(test(minmax_net, test_data))
