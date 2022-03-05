@@ -148,6 +148,54 @@ def test_step(model, test_data):
     return step(model, test_data, False)
 
 
+def folds(train_data, k):
+    """split train_data into k folds.
+
+    Args:
+        train_data (array): the training data
+        k (int): fold number
+
+    Returns:
+        split_data (array): the splited data formatted [train_data, val_data] array.
+    """
+
+    fold_size = len(train_data) // k
+    fold_data = []
+    for i in range(k - 1):
+        fold_data.append(train_data[i * fold_size : (i + 1) * fold_size])
+    fold_data.append(train_data[(k - 1) * fold_size :])
+
+    split_data = []
+    for val in range(k):
+        split_train_data = []
+        for i in range(k):
+            if i != val:
+                split_train_data += fold_data[i]
+        split_data.append([split_train_data, fold_data[val]])
+
+    return split_data
+
+
+def cross_validation(model, split_data):
+    """Cross validation over split data.
+
+    Args:
+        model (Net): the instance of Net
+        split_data (array): the splitted data generated from folds()
+
+    Returns:
+        train_error, val_error: the mean of errors among experiments.
+    """
+    
+    k = len(split_data)
+    sum_train_error = 0.0
+    sum_val_error = 0.0
+    for _train_data, _val_data in split_data:
+        sum_train_error += train_step(model, _train_data)
+        sum_val_error += test_step(model, _val_data)
+    return sum_train_error / k, sum_val_error / k
+
+
 def train(model, train_data, epochs, test_data=None):
     """Train the model by epochs.
 
@@ -162,12 +210,7 @@ def train(model, train_data, epochs, test_data=None):
     """
 
     # divide the data into 3-folds.
-    k = 3
-    fold_size = len(train_data) // k
-    fold_data = []
-    for i in range(k - 1):
-        fold_data.append(train_data[i * fold_size : (i + 1) * fold_size])
-    fold_data.append(train_data[(k - 1) * fold_size :])
+    split_data = folds(train_data, 3)
 
     with tqdm(total=epochs, leave=True, unit="epoch") as pbar:
         # Parameters for early stopping.
@@ -179,19 +222,10 @@ def train(model, train_data, epochs, test_data=None):
 
         epoch_range = range(model.epochs + 1, model.epochs + 1 + epochs)
         for epoch in epoch_range:
-            train_error = 0.0
-            val_error = 0.0
-            for val in range(k):
-                _train_data = []
-                for i in range(k):
-                    if i != val:
-                        _train_data += fold_data[i]
-                train_error += train_step(model, _train_data)
-                _val_data = fold_data[val]
-                val_error += test_step(model, _val_data)
-            train_error /= k
-            val_error /= k
+
+            train_error, val_error = cross_validation(model, split_data)
             pbar.update(1)
+
             if epoch == 1 or epoch % 10 == 0:
                 model.epochs = epoch
                 model.logs.append(
@@ -202,8 +236,7 @@ def train(model, train_data, epochs, test_data=None):
                         else [test_step(copy.deepcopy(model), test_data)]
                     )
                 )
-                # though the deepcopy is not necessary, here the test_data will only use the forward process, the storage of like delta_u3 will not be infected and new data will flush out the storage like u3
-                # but for safety reasons, deepcopy is here inserted.
+                # track the test performance if test_data is defined.
 
                 # Early Stop
                 if val_error - best_val_error < -DELTA:
@@ -228,6 +261,14 @@ def train(model, train_data, epochs, test_data=None):
                 pbar.set_description(
                     "Epoch %4d | T %.4f | V %.4f" % (epoch, train_error, val_error)
                 )
+        pbar.set_description(
+            "Best Epoch %4d | T %.4f | V %.4f"
+            % (
+                best_model.logs[-1][0],
+                best_model.logs[-1][1],
+                best_model.logs[-1][2],
+            )
+        )
         return best_model
 
 

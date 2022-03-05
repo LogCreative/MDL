@@ -180,6 +180,24 @@ three different learning rates.
 
     按照 \cite{tfearly} 中早停机制的实现，将会在最佳验证误差后没有进展的 \texttt{MAX\_EPOCHS}$=200$ 后停止训练，并恢复最佳模型。
 
+    \begin{table}[H]
+        \centering
+        \caption{不同学习率训练时间}\label{tab:benchmark_lr}
+        \begin{tabular}{crrr}
+            \toprule
+            $\eta$ & 0.01 & 0.05 & 0.1 \\
+            \midrule
+            平均训练时间(s) & 151 & 83 & 40 \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{benchmark_lr}
+        \caption{不同学习率测试结果}\label{fig:benchmark_lr}
+    \end{figure}
+
     \section{分割子问题}
 
     \begin{problem}
