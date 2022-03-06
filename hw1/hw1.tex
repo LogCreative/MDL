@@ -175,14 +175,22 @@ three different learning rates.
 
     \subsection{训练过程}
 
-    类似于 \cite{torchlinear}，由于参数数量相对于线性层加倍，将参数初始化为 $\mathcal{U}\left(-\sqrt{\frac{1}{2\times 2}},\sqrt{\frac{1}{2\times 2}}\right)=\mathcal{U}(-0.5,0.5)$ 上的随机值，其中 $\mathcal{U}$ 为一致分布。
+    \paragraph{参数初始化}
 
     简便起见，将三个参数的学习率设置为一个相等的值 $\eta_1=\eta_2=\eta_3=\eta$，将动量常数也设为相同的值 $\alpha_1=\alpha_2=\alpha_3=\alpha$。
 
-    数据范围是 $x\in[-6,6],y\in[-6,6]$。
+    类似于 \cite{torchlinear}，由于参数数量相对于线性层加倍，将参数初始化为 $\mathcal{U}\left(-\sqrt{\frac{1}{2\times 2}},\sqrt{\frac{1}{2\times 2}}\right)=\mathcal{U}(-0.5,0.5)$ 上的随机值，其中 $\mathcal{U}$ 为一致分布。
 
-    按照 \cite{tfearly} 中早停机制的实现，将会在最佳验证误差后没有进展的 \texttt{MAX\_EPOCHS}$=200$ 后停止训练，并恢复最佳模型。
+    \paragraph{训练}
 
+    数据范围是 $x\in[-6,6],y\in[-6,6]$。训练与验证将采用 3 折交叉验证，测试集只用于测试最终的训练效果。
+
+    \paragraph{早停}
+
+    类似 \cite{tfearly} 中早停机制的实现，将会在最佳验证误差后没有进展的 \texttt{MAX\_EPOCHS}$=200$ 后停止训练，并恢复最佳模型。
+
+    可以设定一个训练轮次阈值来防止无限训练。
+    
     % TODO: talk about the code process.
 
     \subsection{实验结果}
@@ -251,7 +259,83 @@ three different learning rates.
         \caption{网络结构}\label{fig:minmax}
     \end{figure}
 
-    
+    % \subsection{训练过程}
+
+    % TODO: 并行实现
+
+    \subsection{测试结果}
+
+    对于两种情况，采用同一组随机种子进行测试，固定 $\eta=0.05, \alpha=0.8$，测试结果取平均如表 \ref{tab:minmax} 所示。结果显示，随着 $k$ 的增大，每个训练集上的训练时间会减少（由于训练集的体量小，早停比较快），但是总体测试误差会增大。对于随机种子 42 的网络结果可视化结果如图 \ref{fig:boundary_minmax} 所示。
+
+    \begin{table}[H]
+        \centering
+        \caption{最大最小模块网络测试结果}\label{tab:minmax}
+        \begin{tabular}{crr}
+            \toprule
+            $k$ & 2 & 3 \\
+            \midrule
+            平均最大时间(s) & 118 & 66 \\
+            平均测试误差(MSE) & 0.1339 & 0.1459 \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+
+    \begin{figure}[H]
+        \centering
+        \subfigure[4 个子问题]{\includegraphics[width=\linewidth]{boundary_minmax2}}
+        \subfigure[9 个子问题]{\includegraphics[width=\linewidth]{boundary_minmax3}}
+        \caption{最小最大模块网络测试结果（随机种子 42）}\label{fig:boundary_minmax}
+    \end{figure}
 
     \bibliography{ref}
+
+    \appendix
+
+    \section{运行方法}
+
+    所有的代码文件放在 src 文件夹中。运行程序前需要进入 \texttt{src} 目录。
+    
+    \begin{figure}[H]
+        \centering
+        \input{fig/files}
+        \caption{源文件目录结构}\label{fig:files}
+    \end{figure}
+
+    \subsection{MLQP 模型}
+    运行 \filelink{src/model.py}。
+
+    \begin{lstlisting}[style=commandshell]
+python model.py [-h] [--epochs N] [--train_file TR] [--test_file TE] [--lr LR] [--alpha A]
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --epochs N       number of epochs to train (default: 100)
+  --train_file TR  training data file
+  --test_file TE   test data file
+  --lr LR          learning rate (default: 0.1)
+  --alpha A        Momentum constant (default: 0.8)
+    \end{lstlisting}
+
+    可以设定训练轮次阈值、训练文件、测试文件、学习率以及动量常数。均具有默认参数。
+
+    \subsection{MIN-MAX 模块网络}
+    运行 \filelink{src/minmax.py}。
+
+    \begin{lstlisting}[style=commandshell]
+python minmax.py [-h] [--k K] [--epochs N] [--lr LR] [--train_file TR] [--test_file TE]
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --k K            number of split to train (default: 3)
+  --epochs N       number of epochs to train (default: 100)
+  --lr LR          learning rate (default: 0.1)
+  --train_file TR  training data file
+  --test_file TE   test data file
+    \end{lstlisting}
+
+    可以设定分割份数、训练轮次阈值、学习率、训练文件、测试文件。均具有默认参数。
+
+    \subsection{结果可视化}
+
+    打开 \filelink{src/visual.ipynb} 可以看到普通 MLQP 和 MIN-MAX 网络测试可视结果。调用更加底层的函数时可以设定随机种子。
 \end{document}
