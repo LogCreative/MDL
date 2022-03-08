@@ -1,4 +1,4 @@
-from random import random
+import random
 from model import *
 import time
 
@@ -45,7 +45,7 @@ def divide(train_data, k=2):
         k (int): the number of split on positive/negative set
 
     Returns:
-        divided_data (array): the 2D data array for computation.
+        array: the 2D divided data array for computation.
     """
     positive = []
     negative = []
@@ -75,7 +75,7 @@ def trainer(train_sub_data, epochs, lr=0.05, random_seed=None):
         random_seed (int, optional): Random Seed. Defaults to None.
 
     Returns:
-        net: the trained network.
+        Net: the trained network.
     """
     net = Net(lr, random_seed=random_seed)
     net = train(net, train_sub_data, epochs)
@@ -83,10 +83,22 @@ def trainer(train_sub_data, epochs, lr=0.05, random_seed=None):
 
 
 def minmax(train_data, k, epochs, lr=0.05, random_seed=None):
-    # randomly shuffle the array
+    """Train minmax network.
+
+    Args:
+        train_data (array): the training data.
+        k (int): the number of split
+        epochs (int): the threshold of training epochs.
+        lr (float, optional): Learning rate. Defaults to 0.05.
+        random_seed (int, optional): Random Seed. Defaults to None.
+
+    Returns:
+        Max, array[Net], array[Min], float: Target Network, subnets, min nets, maximum training time among units
+    """
+    # shuffle the array for random split
     if random_seed is not None:
         random.seed(random_seed)
-        random.shuffle(train_data)
+    random.shuffle(train_data)
 
     divided_data = divide(train_data, k)
 

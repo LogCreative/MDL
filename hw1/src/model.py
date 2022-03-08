@@ -143,7 +143,7 @@ def test_step(model, test_data):
         test_data (array): the testing data
 
     Returns:
-        test_error: the mse error over test_data
+        array: the mse error over test_data
     """
     return step(model, test_data, False)
 
@@ -156,7 +156,7 @@ def folds(data, k):
         k (int): the number of portions
 
     Returns:
-        fold_data (array): the divided data
+        array: the divided data
     """
 
     fold_size = len(data) // k
@@ -175,7 +175,7 @@ def split(train_data, k):
         k (int): fold number
 
     Returns:
-        split_data (array): the splited data formatted [train_data, val_data] array.
+        array: the splited data formatted [train_data, val_data] array.
     """
 
     fold_data = folds(train_data, k)
@@ -199,7 +199,7 @@ def cross_validation(model, split_data):
         split_data (array): the splitted data generated from folds()
 
     Returns:
-        train_error, val_error: the mean of errors among experiments.
+        float, float: the mean of training error and validation error among experiments.
     """
 
     k = len(split_data)
@@ -221,7 +221,7 @@ def train(model, train_data, epochs, test_data=None):
         test_data (array, optional): if assigned, the test error will be tracked but will not go into the training process.
 
     Returns:
-        model (Net): trained model
+        Net: trained model
     """
 
     # divide the data into 3-folds.
@@ -295,7 +295,7 @@ def test(model, test_data):
         test_data (arrat): the testing set
 
     Returns:
-        test_error: the mse error over test set
+        float: the mse error over test set
     """
     return test_step(model, test_data)
 

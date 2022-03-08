@@ -29,7 +29,7 @@ mode.
 
     \begin{figure}[h]
         \centering
-        \includegraphics[height=0.25\textheight]{mlqp}
+        \includegraphics[height=0.25\textheight]{mlqpnet}
         \caption{MLQP}\label{fig:mlqp}
     \end{figure}
 
@@ -163,7 +163,7 @@ three different learning rates.
         \mathbf{\Delta B}_{k} = (\Delta b_{kj})_{N_{k}\times 1} = \eta_3 \boldsymbol{\delta}_{k}
     \end{equation*}
 
-    \subsection{动量项}
+    \subsubsection{动量项}
 
     为了加速收敛过程，对修正项添加动量项
     \begin{align}
@@ -338,4 +338,8 @@ optional arguments:
     \subsection{结果可视化}
 
     打开 \filelink{src/visual.ipynb} 可以看到普通 MLQP 和 MIN-MAX 网络测试可视结果。调用更加底层的函数时可以设定随机种子。
+
+    \section{API 手册}
+
+    API 手册详见 \filelink{mlqp.pdf}。
 \end{document}
