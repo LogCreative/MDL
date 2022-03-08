@@ -259,13 +259,13 @@ three different learning rates.
         \caption{网络结构}\label{fig:minmax}
     \end{figure}
 
-    % \subsection{训练过程}
+    \subsection{并行实现}
 
-    % TODO: 并行实现
+    使用 Python 3.8 以上的 \verb"multiprocessing" 库实现并行计算，由于实验计算机只有 4 个逻辑核，所以最多只能同时跑满 4 个进程。在测量性能时将只考虑非并行情况下的测量。
 
     \subsection{测试结果}
 
-    对于两种情况，采用同一组随机种子进行测试，固定 $\eta=0.05, \alpha=0.8$，测试结果取平均如表 \ref{tab:minmax} 所示。结果显示，随着 $k$ 的增大，每个训练集上的训练时间会减少（由于训练集的体量小，早停比较快），但是总体测试误差会增大。对于随机种子 42 的网络结果可视化结果如图 \ref{fig:boundary_minmax} 所示。
+    对于两种情况，采用同一组随机种子进行测试，固定 $\eta=0.05, \alpha=0.8$，测试结果取平均如表 \ref{tab:minmax} 所示。结果显示，随着 $k$ 的增大，每个训练集上的训练时间会减少（由于训练集的体量小，早停比较快），但是总体测试误差会增大。（并行时间受配置影响，没有太大的参考意义）对于随机种子 42 的网络结果可视化结果如图 \ref{fig:boundary_minmax} 所示。
 
     \begin{table}[H]
         \centering
@@ -274,8 +274,8 @@ three different learning rates.
             \toprule
             $k$ & 2 & 3 \\
             \midrule
-            平均最大时间(s) & 118 & 66 \\
-            平均测试误差(MSE) & 0.1339 & 0.1459 \\
+            平均最大时间(s) & 64 & 46 \\
+            平均测试误差(MSE) & 0.1356 & 0.1441 \\
             \bottomrule
         \end{tabular}
     \end{table}
@@ -322,7 +322,7 @@ optional arguments:
     运行 \filelink{src/minmax.py}。
 
     \begin{lstlisting}[style=commandshell]
-python minmax.py [-h] [--k K] [--epochs N] [--lr LR] [--train_file TR] [--test_file TE]
+python minmax.py [-h] [--k K] [--epochs N] [--lr LR] [--train_file TR] [--test_file TE] [--parallel P]
 
 optional arguments:
   -h, --help       show this help message and exit
@@ -331,9 +331,10 @@ optional arguments:
   --lr LR          learning rate (default: 0.1)
   --train_file TR  training data file
   --test_file TE   test data file
+  --parallel P     if training in multiprocessing (default: False)
     \end{lstlisting}
 
-    可以设定分割份数、训练轮次阈值、学习率、训练文件、测试文件。均具有默认参数。
+    可以设定分割份数、训练轮次阈值、学习率、训练文件、测试文件、是否启用并行。均具有默认参数。
 
     \subsection{结果可视化}
 

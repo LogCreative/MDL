@@ -1,6 +1,8 @@
+from multiprocessing import Pool, RLock, freeze_support
 import random
 from model import *
 import time
+from functools import partial
 
 
 class Operator:
@@ -82,8 +84,8 @@ def trainer(train_sub_data, epochs, lr=0.05, random_seed=None):
     return net
 
 
-def minmax(train_data, k, epochs, lr=0.05, random_seed=None):
-    """Train minmax network.
+def minmax(train_data, k, epochs, lr=0.05, random_seed=None, parallel=True):
+    """Train minmax network in multiprocessing.
 
     Args:
         train_data (array): the training data.
@@ -91,9 +93,10 @@ def minmax(train_data, k, epochs, lr=0.05, random_seed=None):
         epochs (int): the threshold of training epochs.
         lr (float, optional): Learning rate. Defaults to 0.05.
         random_seed (int, optional): Random Seed. Defaults to None.
+        parallel (bool, optional): If uses parallel training. Defaults to True.
 
     Returns:
-        Max, array[Net], array[Min], float: Target Network, subnets, min nets, maximum training time among units
+        Max, array[Net], array[Min], float: Target Network, subnets, min nets, elapsed training time among units if parallel or max training time if not parallel.
     """
     # shuffle the array for random split
     if random_seed is not None:
@@ -102,15 +105,33 @@ def minmax(train_data, k, epochs, lr=0.05, random_seed=None):
 
     divided_data = divide(train_data, k)
 
-    # train the units
-    max_time = 0
-    subnets = []
-    for i in range(k):
-        subnets.append([])
-        for j in range(k):
-            start_time = time.time()
-            subnets[i].append(trainer(divided_data[i][j], epochs, lr, random_seed))
-            max_time = max(time.time() - start_time, max_time)
+    if parallel:
+        # train in multiprocessing.
+        divided_data_flatten = [divided_data[i][j] for i in range(k) for j in range(k)]
+        freeze_support()
+        tqdm.set_lock(RLock())
+        p = Pool(initializer=tqdm.set_lock, initargs=(tqdm.get_lock(),))
+        start_time = time.time()
+        subnets_list = p.map(
+            partial(trainer, epochs=epochs, lr=lr, random_seed=random_seed),
+            divided_data_flatten,
+        )
+        elapsed_time = time.time() - start_time
+        subnets = []
+        for i in range(k):
+            subnets.append([])
+            for j in range(k):
+                subnets[i].append(subnets_list[i * k + j])
+    else:
+        # train the processes in sequence.
+        elapsed_time = 0
+        subnets = []
+        for i in range(k):
+            subnets.append([])
+            for j in range(k):
+                start_time = time.time()
+                subnets[i].append(trainer(divided_data[i][j], epochs, lr, random_seed))
+                elapsed_time = max(time.time() - start_time, elapsed_time)
 
     # merge to min
     mins = []
@@ -118,7 +139,7 @@ def minmax(train_data, k, epochs, lr=0.05, random_seed=None):
         mins.append(Min(subnets[i]))
 
     # merge to max
-    return Max(mins), subnets, mins, max_time
+    return Max(mins), subnets, mins, elapsed_time
 
 
 if __name__ == "__main__":
@@ -158,11 +179,18 @@ if __name__ == "__main__":
         metavar="TE",
         help="test data file",
     )
+    parser.add_argument(
+        "--parallel",
+        type=bool,
+        default=False,
+        metavar="P",
+        help="if training in multiprocessing (default: False)",
+    )
     args = parser.parse_args()
 
     train_data = read_data(args.train_file)
-    minmax_net, subnets, mins, max_time = minmax(
-        train_data, args.k, args.epochs, args.lr
+    minmax_net, subnets, mins, elpased_time = minmax(
+        train_data, args.k, args.epochs, args.lr, None, args.parallel
     )
     test_data = read_data(args.test_file)
     test_error = test(minmax_net, test_data)
